@@ -1,0 +1,12 @@
+{
+    "SCREEN_WIDTH": 1280,
+    "SCREEN_HEIGHT": 720,
+    "RESTART_BUTTON_SIZE": 70,
+    "FONT_SIZE": 25,
+    "TEXT_COLOR": [255, 255, 255],
+    "STATISTICS_POSITIONS": [
+        {"y": 0.75, "template": "Time: {:.2f} seconds"},
+        {"y": 0.84, "template": "WPM: {:.2f"},
+        {"y": 0.88, "template": "Accuracy: {:.2f}%"}
+    ]
+}
