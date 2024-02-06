@@ -4,6 +4,7 @@ import sys
 import pygame
 import json
 
+from src.DifficultyButtons import Button
 from src.RestartButton import RestartButton
 
 with open("config.json") as config_file:
@@ -15,12 +16,13 @@ RESTART_BUTTON_SIZE = config["RESTART_BUTTON_SIZE"]
 FONT_SIZE = config["FONT_SIZE"]
 TEXT_COLOR = tuple(config["TEXT_COLOR"])
 Positions = [
-        {"y": 0.75, "template": "Time: {:.2f} seconds"},
-        {"y": 0.84, "template": "WPM: {:.2f"},
-        {"y": 0.88, "template": "Accuracy: {:.2f}%"}
-    ]
+    {"y": 0.75, "template": "Time: {:.2f} seconds"},
+    {"y": 0.84, "template": "WPM: {:.2f"},
+    {"y": 0.88, "template": "Accuracy: {:.2f}%"}
+]
 STATISTICS_POSITIONS = [(int(SCREEN_HEIGHT * pos["y"]), pos["template"]) for pos in Positions]
 FPS = config["FPS"]
+
 
 def get_words(word_count):
     try:
@@ -28,7 +30,7 @@ def get_words(word_count):
             all_lines = file.readlines()
 
             # Filter lines that have at least the specified word count
-            valid_lines = [line.strip() for line in all_lines if len(line.split()) >= word_count]
+            valid_lines = [line.strip() for line in all_lines if len(line.split()) == word_count]
 
             # If there are valid lines, select a random one
             if valid_lines:
@@ -59,6 +61,18 @@ class SlaveType:
             "Images/restart.png",
             (0, 100, 0)
         )
+        button_width = 45
+        button_height = 45
+        button_spacing = 10  # Space between buttons
+        num_buttons = 3
+        total_buttons_width = num_buttons * button_width + (num_buttons - 1) * button_spacing
+        buttons = [10, 20, 50]
+        # Calculate the starting x position for the first button to center the group
+        start_x = (SCREEN_WIDTH - total_buttons_width) // 2
+
+        self.difficultyButtons = [
+            Button(start_x + i * (button_width + button_spacing), 10, button_width, button_height, str(buttons[i])) for
+            i in range(num_buttons)]
         self.input_text = ""
         self.end = False
         self.elapsed_time = 0
@@ -118,20 +132,30 @@ class SlaveType:
 
             y_pos_offset += line_height  # Increase the y position offset for the next line
 
-            # Draw the cursor if this is the input text
             if input_text and cursor_visible and i == len(lines) - 1:
+                # Set the cursor width to a fixed value for a thin line cursor
+                cursor_width = 2  # or whatever width you prefer for your cursor
+                cursor_height = font.get_height()
+
                 # Get the current time in milliseconds
                 time_ms = pygame.time.get_ticks()
-                # Check if the cursor should be visible (blink every 500ms)
                 if (time_ms // 500) % 2 == 0:
-                    cursor_x = text_rect.left + get_text_width(self.input_text[:self.cursor_position], font_size)
-                    cursor_height = text_rect.height
-                    cursor_rect = pygame.Rect(cursor_x, text_rect.top, 2, cursor_height)
-                    pygame.draw.rect(self.screen, text_color, cursor_rect)
+                    cursor_x_offset = 0
+                    # Render each character up to the cursor position to get the exact cursor position
+                    for char in self.input_text[:self.cursor_position]:
+                        char_width, _ = font.size(char)
+                        cursor_x_offset += char_width
 
+                    # Calculate the cursor's x position
+                    cursor_x = text_rect.left + cursor_x_offset
+                    cursor_y = text_rect.top
+
+                    # Draw the cursor as a solid box
+                    cursor_rect = pygame.Rect(cursor_x, cursor_y, cursor_width, cursor_height)
+                    pygame.draw.rect(self.screen, (255, 255, 255), cursor_rect)
             # Draw the underline if this is not the input text
             if not input_text and underline and i == len(lines) - 1:
-                pygame.draw.line(self.screen, text_color, (text_rect.left, text_rect.bottom),
+                pygame.draw.line(self.screen, (255, 255, 255), (text_rect.left, text_rect.bottom),
                                  (text_rect.right, text_rect.bottom), 2)
 
     def calculate_statistics(self):
@@ -184,30 +208,32 @@ class SlaveType:
     def redraw_window(self):
         # Clear the entire screen
         self.screen.fill((12, 22, 24, 255))
-
         # Redraw the input text
         current_font_size = self.get_scaled_font_size()
         text_position = self.get_relative_pos(0.5, 0.4)
-        self.render_text(self.input_text, text_position, current_font_size, TEXT_COLOR,
+        self.render_text(self.input_text, text_position, current_font_size, (0, 255, 0),
                          input_text=True, cursor_visible=True)
-
         # Redraw words
         words_position = self.get_relative_pos(0.5, 0.14)
-        self.render_text(self.words, words_position, current_font_size, TEXT_COLOR, underline=True)
-
+        self.render_text(self.words, words_position, current_font_size, (0, 153, 51), underline=True)
         # Update and redraw the restart button position
         self.restart_button.rect.x = SCREEN_WIDTH // 2 - RESTART_BUTTON_SIZE // 2
         self.restart_button.rect.y = SCREEN_HEIGHT // 2 + 60  # Adjust y-coordinate as needed
         if self.end:
             self.restart_button.draw(self.screen)
-
         # Recalculate and redraw the statistics
         [(int(SCREEN_HEIGHT * pos["y"]), pos["template"]) for pos in
          Positions]
-
         # Redraw the time
         self.display_time()
         self.display_statistics()
+        # Redraw buttons
+        count = -1.5
+        for button in self.difficultyButtons:
+            button.rect.x = SCREEN_WIDTH // 2 + count * (button.rect.width + 10)
+            button.rect.y = 10
+            button.draw(self.screen)
+            count += 1
 
     def restart(self, words=50):
         self.end = False
@@ -227,6 +253,12 @@ class SlaveType:
     def handle_events(self):
         global SCREEN_WIDTH, SCREEN_HEIGHT, STATISTICS_POSITIONS
         for event in pygame.event.get():
+            for button in self.difficultyButtons:
+                button.handle_event(event)
+                if button.clicked:
+                    self.input_text = ""
+                    button.clicked = False
+                    self.restart(int(button.text))
             self.restart_button.handle_event(event)
             if event.type == pygame.QUIT:
                 self.running = False
@@ -301,7 +333,7 @@ class SlaveType:
             pygame.draw.rect(self.screen, (12, 22, 24, 255), input_text_rect)
             current_font_size = self.get_scaled_font_size()
             text_position = self.get_relative_pos(0.5, 0.4)
-            self.render_text(self.input_text, text_position, current_font_size, (250, 250, 250),
+            self.render_text(self.input_text, text_position, current_font_size, (0, 255, 0),
                              input_text=True, cursor_visible=True)
 
             self.display_time()

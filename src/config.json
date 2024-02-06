@@ -3,6 +3,6 @@
     "SCREEN_HEIGHT": 720,
     "RESTART_BUTTON_SIZE": 100,
     "FONT_SIZE": 30,
-    "TEXT_COLOR": [255, 255, 255],
+    "TEXT_COLOR": [0, 255, 0],
     "FPS": 240
 }
