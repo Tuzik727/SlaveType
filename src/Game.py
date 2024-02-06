@@ -14,9 +14,13 @@ SCREEN_HEIGHT = config["SCREEN_HEIGHT"]
 RESTART_BUTTON_SIZE = config["RESTART_BUTTON_SIZE"]
 FONT_SIZE = config["FONT_SIZE"]
 TEXT_COLOR = tuple(config["TEXT_COLOR"])
-# Recalculate STATISTICS_POSITIONS based on the new SCREEN_HEIGHT
-STATISTICS_POSITIONS = [(int(SCREEN_HEIGHT * pos["y"]), pos["template"]) for pos in config["STATISTICS_POSITIONS"]]
-
+Positions = [
+        {"y": 0.75, "template": "Time: {:.2f} seconds"},
+        {"y": 0.84, "template": "WPM: {:.2f"},
+        {"y": 0.88, "template": "Accuracy: {:.2f}%"}
+    ]
+STATISTICS_POSITIONS = [(int(SCREEN_HEIGHT * pos["y"]), pos["template"]) for pos in Positions]
+FPS = config["FPS"]
 
 def get_words(word_count):
     try:
@@ -48,17 +52,14 @@ class SlaveType:
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
-        self.restart_img = pygame.transform.scale(pygame.image.load("Images/restart.png"),
-                                                  (RESTART_BUTTON_SIZE, RESTART_BUTTON_SIZE))
         self.restart_button = RestartButton(
             (SCREEN_WIDTH // 2 - RESTART_BUTTON_SIZE // 2, SCREEN_HEIGHT // 2 + 60),
             RESTART_BUTTON_SIZE,
             RESTART_BUTTON_SIZE,
-            "Images/restart.png",  # Path to the normal state image
+            "Images/restart.png",
             (0, 100, 0)
         )
         self.input_text = ""
-        self.active = True
         self.end = False
         self.elapsed_time = 0
         self.start_time = 0
@@ -89,57 +90,49 @@ class SlaveType:
         font = pygame.font.Font("Fonts/Roboto-Medium.ttf", font_size)
         line_height = font.get_linesize()
 
-        text_surface = font.render(text, True, text_color)
-        text_rect = text_surface.get_rect()
+        # Common logic for splitting text into lines
+        words = text.split()
+        lines = []
+        current_line = []
 
-        if input_text:
-            lines = text.split('\n')
-            max_line_width = 0
+        for word in words:
+            # Check if adding the next word exceeds the line width
+            if get_text_width(' '.join(current_line + [word]), font_size) < SCREEN_WIDTH - 300:
+                current_line.append(word)
+            else:
+                # If the line is full, append it to the lines list and start a new line
+                lines.append(' '.join(current_line))
+                current_line = [word]
 
-            for i, line in enumerate(lines):
-                text_surface = font.render(line, True, text_color)
-                text_rect.center = position
-                self.screen.blit(text_surface, text_rect)
+        # Add the last line to the lines list
+        lines.append(' '.join(current_line))
 
-                # Update max_line_width if the current line is wider
-                max_line_width = max(max_line_width, text_rect.width)
+        # Rendering logic
+        x_pos, y_pos = position
+        y_pos_offset = 0
 
-                if input_text and cursor_visible:
-                    # Get the current time in milliseconds
-                    time_ms = pygame.time.get_ticks()
-                    # Check if the cursor should be visible (blink every 500ms)
-                    if (time_ms // 500) % 2 == 0:
-                        # Draw the cursor
-                        cursor_x = text_rect.left + get_text_width(self.input_text[:self.cursor_position], font_size)
-                        cursor_rect = pygame.Rect(cursor_x, text_rect.top, 2, text_rect.height)
-                        pygame.draw.rect(self.screen, text_color, cursor_rect)
-        else:
-            words = text.split()
-            lines = []
-            current_line = []
+        for i, line in enumerate(lines):
+            text_surface = font.render(line, True, text_color)
+            text_rect = text_surface.get_rect(center=(x_pos, y_pos + y_pos_offset))
+            self.screen.blit(text_surface, text_rect)
 
-            for word in words:
-                if get_text_width(' '.join(current_line + [word]), font_size) < SCREEN_WIDTH - 300:
-                    current_line.append(word)
-                else:
-                    lines.append(' '.join(current_line))
-                    current_line = [word]
+            y_pos_offset += line_height  # Increase the y position offset for the next line
 
-            lines.append(' '.join(current_line))
+            # Draw the cursor if this is the input text
+            if input_text and cursor_visible and i == len(lines) - 1:
+                # Get the current time in milliseconds
+                time_ms = pygame.time.get_ticks()
+                # Check if the cursor should be visible (blink every 500ms)
+                if (time_ms // 500) % 2 == 0:
+                    cursor_x = text_rect.left + get_text_width(self.input_text[:self.cursor_position], font_size)
+                    cursor_height = text_rect.height
+                    cursor_rect = pygame.Rect(cursor_x, text_rect.top, 2, cursor_height)
+                    pygame.draw.rect(self.screen, text_color, cursor_rect)
 
-            for i, line in enumerate(lines):
-                text_surface = font.render(line, True, text_color)
-
-                x_pos, y_pos = position
-                text_rect = text_surface.get_rect(center=(x_pos, y_pos + i * line_height))
-
-                if underline and i == len(lines) - 1:
-                    pygame.draw.line(self.screen, text_color, (text_rect.left, text_rect.bottom),
-                                     (text_rect.right, text_rect.bottom), 2)
-
-                self.screen.blit(text_surface, text_rect)
-
-        pygame.display.update()
+            # Draw the underline if this is not the input text
+            if not input_text and underline and i == len(lines) - 1:
+                pygame.draw.line(self.screen, text_color, (text_rect.left, text_rect.bottom),
+                                 (text_rect.right, text_rect.bottom), 2)
 
     def calculate_statistics(self):
         # Calculate the number of correct characters typed
@@ -153,7 +146,6 @@ class SlaveType:
         self.wpm = (len(self.input_text) / 5) / (self.elapsed_time / 60) if self.elapsed_time > 0 else 0
 
     def display_time(self):
-        global SCREEN_WIDTH, SCREEN_HEIGHT
         time_rect = pygame.Rect(0, SCREEN_HEIGHT * 0.7, SCREEN_WIDTH, SCREEN_HEIGHT * 0.1)
         self.screen.fill((12, 22, 24, 255), time_rect)
 
@@ -173,7 +165,6 @@ class SlaveType:
                 self.render_text(time_text, (x_pos, y_pos), font_size, TEXT_COLOR)
 
     def display_statistics(self):
-        global SCREEN_WIDTH, SCREEN_HEIGHT, STATISTICS_POSITIONS
         statistics_rect = pygame.Rect(0, SCREEN_HEIGHT * 0.8, SCREEN_WIDTH, SCREEN_HEIGHT)
         self.screen.fill((12, 22, 24, 255), statistics_rect)  # Fill with the background color
 
@@ -190,15 +181,9 @@ class SlaveType:
             # Render and blit the statistics text onto the statistics surface
             self.render_text(stats_text, (x_pos, y_pos), font_size, TEXT_COLOR)
 
-        # Blit the statistics surface onto the main screen at the desired position
-
     def redraw_window(self):
         # Clear the entire screen
         self.screen.fill((12, 22, 24, 255))
-
-        # Redraw the input text area
-        input_text_rect = pygame.Rect(50, SCREEN_HEIGHT * 0.35, SCREEN_WIDTH - 100, SCREEN_HEIGHT * 0.1)
-        pygame.draw.rect(self.screen, (255, 255, 255), input_text_rect)  # Assuming white color for the input box
 
         # Redraw the input text
         current_font_size = self.get_scaled_font_size()
@@ -217,16 +202,12 @@ class SlaveType:
             self.restart_button.draw(self.screen)
 
         # Recalculate and redraw the statistics
-        STATISTICS_POSITIONS = [(int(SCREEN_HEIGHT * pos["y"]), pos["template"]) for pos in
-                                config["STATISTICS_POSITIONS"]]
+        [(int(SCREEN_HEIGHT * pos["y"]), pos["template"]) for pos in
+         Positions]
 
         # Redraw the time
         self.display_time()
-
         self.display_statistics()
-
-        # Update the display once after all elements have been drawn
-        pygame.display.update()
 
     def restart(self, words=50):
         self.end = False
@@ -257,8 +238,6 @@ class SlaveType:
                         self.start_time = time.time()
                         self.time_running = True
 
-                    self.calculate_statistics()
-                    self.display_statistics()
                     if event.key == pygame.K_RETURN:
                         self.final_time = self.elapsed_time
                         self.time_running = False
@@ -301,7 +280,7 @@ class SlaveType:
                 self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
                 # Recalculate STATISTICS_POSITIONS based on the new SCREEN_HEIGHT
                 STATISTICS_POSITIONS = [(int(SCREEN_HEIGHT * pos["y"]), pos["template"]) for pos in
-                                        config["STATISTICS_POSITIONS"]]
+                                        Positions]
                 # Redraw everything after resizing
                 self.redraw_window()
 
@@ -314,6 +293,7 @@ class SlaveType:
 
         while self.running:
             clock = pygame.time.Clock()
+
             self.handle_events()
             # Dynamically adjust the position and size of the input text area
             input_text_rect = pygame.Rect(50, SCREEN_HEIGHT * 0.35, SCREEN_WIDTH - 100, SCREEN_HEIGHT * 0.1)
@@ -325,15 +305,18 @@ class SlaveType:
                              input_text=True, cursor_visible=True)
 
             self.display_time()
+            self.calculate_statistics()
+            self.display_statistics()
+
             if self.end:
                 self.restart_button.draw(self.screen)
-
-            pygame.display.update()
 
             if self.restart_button.clicked:
                 self.restart_button.clicked = False
                 self.restart()
 
-            clock.tick(240)
+            pygame.display.update()
+
+            clock.tick(FPS)
         pygame.quit()
         sys.exit()
