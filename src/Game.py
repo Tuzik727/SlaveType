@@ -1,11 +1,13 @@
 import time
-import random
 import sys
 import pygame
 import json
-
+from src import DB
 from src.DifficultyButtons import Button
 from src.RestartButton import RestartButton
+
+with open('db_config.json', 'r') as config_file:
+    db_config = json.load(config_file)
 
 with open("config.json") as config_file:
     config = json.load(config_file)
@@ -26,19 +28,10 @@ FPS = config["FPS"]
 
 def get_words(word_count):
     try:
-        with open("Texts/text.txt") as file:
-            all_lines = file.readlines()
-
-            # Filter lines that have at least the specified word count
-            valid_lines = [line.strip() for line in all_lines if len(line.split()) == word_count]
-
-            # If there are valid lines, select a random one
-            if valid_lines:
-                selected_line = random.choice(valid_lines)
-                return selected_line
-            else:
-                print(f"No lines with at least {word_count} words found.")
-                return None
+        db = DB.Database(**db_config)
+        random_sentence = db.get_random_sentence_by_word_count(word_count)
+        db.close()
+        return random_sentence
     except FileNotFoundError:
         print("Error: File 'text.txt' not found.")
         sys.exit()
