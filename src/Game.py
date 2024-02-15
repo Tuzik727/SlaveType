@@ -94,7 +94,7 @@ class SlaveType:
                                              height=40,
                                              text="Leaderboard",
                                              font_path="../assets/fonts/Roboto-Bold.ttf",
-                                             font_size=25,
+                                             font_size=20,
                                              text_color=(255, 255, 255),
                                              background_color=(12, 22, 24, 255),
                                              hover_background_color=(150, 150, 150),
