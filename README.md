@@ -1,54 +1,53 @@
 # SlaveType
 
-SlaveType is typing test application with minimal design and cool futures.
-Practise & improve your skills now.
+**SlaveType** is a sleek, minimalist typing test application designed to help users practice and enhance their typing skills. With cool features and a user-friendly interface, SlaveType offers a robust platform for typists of all levels to track and improve their performance.
 
 ## Features
 
-- User accounts
-- Difficulty change
-- Live statistics like accuracy, wpm and time
-- Fast performance
-- Reconfigurable
-- Responsible design
-- Multiplatform
-- Leaderboard
-- Easy installation
+- **User Accounts**: Register and track your progress over time.
+- **Adjustable Difficulty**: Tailor the typing challenge to your skill level.
+- **Live Statistics**: Monitor accuracy, words per minute (WPM), and time.
+- **High Performance**: Enjoy a fast and seamless typing experience.
+- **Customizable**: Personalize settings to suit your preferences.
+- **Responsive Design**: Use the app across various devices and screen sizes.
+- **Cross-Platform**: Available for multiple operating systems.
+- **Leaderboard**: Compete with others and climb the ranks.
+- **Simple Installation**: Get started quickly and easily.
 
 ## Installation
 
-1. Download the latest release from the [Releases page](https://github.com/yourusername/yourrepository/releases).
+1. Download the latest release from the [Releases page](https://github.com/Tuzik727/SlaveType/releases/tag/0.0.1).
 2. Unzip the downloaded file.
 3. Run the executable `SlaveType.exe`.
 
 ## Usage
 
-1. Start the application.
-2. Click the button Sing up or Login(if you already register on), then type your credentials. (TO SWITCH BETWEEN USERNAME AND PASS, USE KEY TAB)
-3. Start typing the text displayed on the screen OR you can choose number of words you have in your typing test.
-4. To stop your session or to restart the game press KEY ENTER.
-5. To restart the game press restart button.
-6. At the center of top screen ou leaderboard button, after pressing it, you could see on left side best daily scores, on right side best overall scores sorted by WPM.
-7. To go back from leaderboard menu press button Back on the bottom at center of screen.
-8. That is all, i hope you will improve your typing skills.
+1. Launch the application.
+2. Sign up for a new account or log in if you have existing credentials (use the TAB key to switch between username and password fields).
+3. Choose the number of words for your typing test or start typing the displayed text immediately.
+4. Press ENTER to end your session or restart the test.
+5. Click the 'Restart' button to begin a new session.
+6. Access the 'Leaderboard' button at the top center of the screen to view the best daily and overall scores by WPM.
+7. To return from the leaderboard, click the 'Back' button at the bottom center.
+8. Enjoy improving your typing skills with SlaveType!
 
 ## Customization
 
-To change the application settings, edit the `config.json` file in the config directory. Available settings include:
+Customize the application settings by editing the `config.json` file in the config directory. Options include:
 
-- `SCREEN_WIDTH`: changes screen width of application
-- `SCREEN_HEIGHT`: changes screen height of application
-- `FONT_SIZE`: changes the size of font
-- `TEXT_COLOR`: changes the colour of text
-- `FPS`: Set fps that app will use
-
+- `SCREEN_WIDTH`: Adjust the application's screen width.
+- `SCREEN_HEIGHT`: Adjust the application's screen height.
+- `FONT_SIZE`: Change the font size.
+- `TEXT_COLOR`: Set the text color.
+- `FPS`: Control the frames per second for the app.
 
 ## Acknowledgments
 
-- PyGame
-- I want to thank PyGame developers for crating such amazing Game Library 
+- **PyGame**: A heartfelt thanks to the developers of PyGame for creating such a fantastic game library.
 
 ## Contact
 
-- `email`: tuzik727@gmail.com
-- `github`: https://github.com/Tuzik727
+For support or inquiries, reach out to me via:
+
+- **Email**: [tuzik727@gmail.com](mailto:tuzik727@gmail.com)
+- **GitHub**: [https://github.com/Tuzik727](https://github.com/Tuzik727)
