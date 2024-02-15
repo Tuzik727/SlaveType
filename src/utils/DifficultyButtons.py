@@ -1,7 +1,7 @@
 import pygame
 
 
-class Button:
+class DifficultyButton:
     def __init__(self, x, y, width, height, text='', color=(12, 22, 24, 0)):
         self.rect = pygame.Rect(x, y, width, height)
         self.text = text
